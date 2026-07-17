@@ -1,0 +1,72 @@
+services:
+  # Base de Datos (PostgreSQL)
+  postgres_db:
+    image: postgres:15-alpine
+    container_name: bd_assis_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend-assi/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app_network
+
+  # Gestor Visual de BD
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: visual_bd_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres_db
+    networks:
+      - app_network
+
+  # Backend (Node.js + Express)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nodejs_express_assis_backend
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=postgres_db
+      - DB_PORT=5432
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_NAME=${POSTGRES_DB}
+      - PORT=3000
+    depends_on:
+      - postgres_db
+    networks:
+      - app_network
+
+  # Frontend (Vue 3 + Vite)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: vue_vite_assis_frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:3000/api
+    depends_on:
+      - backend
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
