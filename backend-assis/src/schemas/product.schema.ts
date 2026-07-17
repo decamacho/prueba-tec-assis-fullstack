@@ -33,6 +33,10 @@ export const updateProductSchema = z.object({
     .optional(),
 }).strict();
 
+export const statusSchema = z.object({
+  estadoProducto: z.boolean(),
+}).strict();
+
 export const querySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(10),
@@ -45,4 +49,5 @@ export const querySchema = z.object({
 
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
+export type StatusInput = z.infer<typeof statusSchema>;
 export type QueryInput = z.infer<typeof querySchema>;

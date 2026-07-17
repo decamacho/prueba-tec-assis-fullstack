@@ -133,7 +133,7 @@ export const productService = {
     }
   },
 
-  async changeStatus(id: string) {
+  async changeStatus(id: string, estado: boolean) {
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -145,7 +145,7 @@ export const productService = {
       }
 
       const estadoAnterior = product.estadoProducto;
-      product.estadoProducto = !estadoAnterior;
+      product.estadoProducto = estado;
       const updatedProduct = await queryRunner.manager.save(product);
 
       const history = queryRunner.manager.create(ProductHistory, {

@@ -55,7 +55,8 @@ export const productController = {
   async changeStatus(req: Request, res: Response): Promise<void> {
     try {
       const id = req.params.id as string;
-      const product = await productService.changeStatus(id);
+      const { estadoProducto } = req.body;
+      const product = await productService.changeStatus(id, estadoProducto);
       sendSuccess(res, product, 'Estado del producto actualizado exitosamente');
     } catch (error: any) {
       sendError(res, error.message || 'Error al cambiar el estado', error.statusCode || 500);
