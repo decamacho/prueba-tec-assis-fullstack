@@ -134,22 +134,6 @@ API REST (Backend)
 
 ---
 
-## Cumplimiento de Requisitos
-
-| Criterio | Pts | Estado |
-|----------|-----|--------|
-| Vue 3 + Vite + Pinia (arquitectura frontend y manejo de estado) | 20 | ✅ |
-| Backend — Express (diseño de la API) | 20 | ✅ |
-| PostgreSQL y calidad del script SQL | 15 | ✅ |
-| CRUD completo y funcional (incluye historial de cambios) | 15 | ✅ |
-| Arquitectura general del proyecto | 10 | ✅ |
-| Calidad del código (TypeScript strict, SOLID) | 10 | ✅ |
-| Git y documentación (README) | 5 | ✅ |
-| Buenas prácticas (errores, validaciones, organización) | 5 | ✅ |
-| **Total** | **100** | **✅** |
-
----
-
 ## Stack Tecnológico
 
 | Capa | Tecnología |
@@ -217,7 +201,7 @@ Errores: `{ "statusCode": 400, "message": "...", "data": null, "status": "error"
 - **Docker Desktop** (recomendado) o **Node.js >= 18** + **PostgreSQL**
 - **npm** >= 9
 
-### Todo con Docker (recomendado — único comando)
+### Todo con Docker
 
 ```bash
 # 1. Clonar
@@ -240,23 +224,6 @@ Acceso:
 | **Backend** | http://localhost:3000 |
 | **pgAdmin** | http://localhost:5050 |
 | **PostgreSQL** | localhost:5432 |
-
-### Desarrollo local
-
-```bash
-# Solo base de datos en Docker
-docker compose up postgres_db -d
-
-# Backend (terminal 1)
-cd backend-assis
-npm install
-npm run dev
-
-# Frontend (terminal 2)
-cd frontend-assis
-npm install
-npm run dev
-```
 
 ---
 
