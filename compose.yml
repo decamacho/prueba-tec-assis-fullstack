@@ -11,7 +11,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend-assi/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./backend-assis/db/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - app_network
 
@@ -32,7 +32,7 @@ services:
   # Backend (Node.js + Express)
   backend:
     build:
-      context: ./backend
+      context: ./backend-assis
       dockerfile: Dockerfile
     container_name: nodejs_express_assis_backend
     ports:
@@ -52,7 +52,7 @@ services:
   # Frontend (Vue 3 + Vite)
   frontend:
     build:
-      context: ./frontend
+      context: ./frontent-assis
       dockerfile: Dockerfile
     container_name: vue_vite_assis_frontend
     ports:
