@@ -1,0 +1,82 @@
+.product-table {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.product-table__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.product-table__search {
+  max-width: 320px;
+}
+
+.product-table__wrapper {
+  overflow-x: auto;
+}
+
+.product-table__status {
+  margin-left: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.product-table__status--active {
+  color: #52c41a;
+}
+
+.product-table__status--inactive {
+  color: #ff4d4f;
+}
+
+.btn-action {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  padding: 0;
+}
+
+.btn-history {
+  color: #fff;
+  background: #52c41a;
+  border-color: #52c41a;
+}
+
+.btn-history:hover {
+  background: #73d13d !important;
+  border-color: #73d13d !important;
+  color: #fff !important;
+}
+
+@media (max-width: 767px) {
+  .product-table {
+    padding: 8px;
+  }
+
+  .product-table__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .product-table__search {
+    max-width: 100%;
+  }
+
+  .product-table__wrapper :deep(.ant-table) {
+    font-size: 13px;
+  }
+
+  .product-table__wrapper :deep(.ant-table-thead > tr > th),
+  .product-table__wrapper :deep(.ant-table-tbody > tr > td) {
+    padding: 8px 6px;
+  }
+}

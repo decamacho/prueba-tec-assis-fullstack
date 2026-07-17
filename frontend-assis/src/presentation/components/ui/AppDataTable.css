@@ -1,0 +1,29 @@
+.app-table {
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.app-table__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.app-table__search {
+  max-width: 320px;
+}
+
+@media (max-width: 767px) {
+  .app-table__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .app-table__search {
+    max-width: 100%;
+  }
+}

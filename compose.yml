@@ -11,9 +11,15 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend-assi/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./backend-assis/db/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   # Gestor Visual de BD
   pgadmin:
@@ -32,7 +38,7 @@ services:
   # Backend (Node.js + Express)
   backend:
     build:
-      context: ./backend
+      context: ./backend-assis
       dockerfile: Dockerfile
     container_name: nodejs_express_assis_backend
     ports:
@@ -45,20 +51,22 @@ services:
       - DB_NAME=${POSTGRES_DB}
       - PORT=3000
     depends_on:
-      - postgres_db
+      postgres_db:
+        condition: service_healthy
+    restart: unless-stopped
     networks:
       - app_network
 
   # Frontend (Vue 3 + Vite)
   frontend:
     build:
-      context: ./frontend
+      context: ./frontend-assis
       dockerfile: Dockerfile
     container_name: vue_vite_assis_frontend
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_BASE_URL=http://localhost:3000/api
+      - VITE_API_BASE_URL=/api
     depends_on:
       - backend
     networks:
