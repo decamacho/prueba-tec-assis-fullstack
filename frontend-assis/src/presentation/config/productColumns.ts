@@ -41,10 +41,10 @@ export const productColumns: ColumnDef[] = [
     key: 'estadoProducto',
     scopedSlots: 'estadoProducto',
   },
-  {
+    {
     title: 'Acciones',
     key: 'acciones',
-    width: 240,
+    width: 200,
     scopedSlots: 'acciones',
   },
 ]

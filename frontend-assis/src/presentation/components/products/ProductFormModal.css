@@ -2,3 +2,13 @@
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
+
+.product-form-input {
+  border-radius: 8px !important;
+  min-height: 40px;
+}
+
+.product-form-input:hover,
+.product-form-input:focus {
+  border-color: var(--color-secondary) !important;
+}

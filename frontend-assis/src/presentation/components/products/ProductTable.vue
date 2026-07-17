@@ -75,23 +75,20 @@ function confirmDelete(record: Product) {
             ${{ Number(record.precioProducto).toFixed(2) }}
           </template>
           <template v-if="column.key === 'acciones'">
-            <a-space>
-              <a-tooltip title="Editar producto">
-                <a-button type="primary" shape="round" size="small" @click="emit('edit', record)">
+            <a-space :size="4">
+              <a-tooltip title="Editar">
+                <a-button type="primary" size="small" class="btn-action" @click="emit('edit', record)">
                   <template #icon><EditOutlined /></template>
-                  Editar
                 </a-button>
               </a-tooltip>
-              <a-tooltip title="Ver historial">
-                <a-button shape="round" size="small" class="btn-history" @click="emit('showHistory', record)">
+              <a-tooltip title="Historial">
+                <a-button size="small" class="btn-action btn-history" @click="emit('showHistory', record)">
                   <template #icon><HistoryOutlined /></template>
-                  Historial
                 </a-button>
               </a-tooltip>
-              <a-tooltip title="Eliminar producto">
-                <a-button danger shape="round" size="small" @click="confirmDelete(record)">
+              <a-tooltip title="Eliminar">
+                <a-button danger size="small" class="btn-action" @click="confirmDelete(record)">
                   <template #icon><DeleteOutlined /></template>
-                  Eliminar
                 </a-button>
               </a-tooltip>
             </a-space>
