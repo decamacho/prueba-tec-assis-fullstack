@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { watch } from 'vue'
+import { productFormFields } from '../../config/productColumns'
+import { useProductForm } from '../../composables/useProductForm'
 import type { Product, ProductFormData } from '../../../core/domain/entities/Product'
 
 const props = defineProps<{
@@ -13,62 +15,15 @@ const emit = defineEmits<{
   save: [data: ProductFormData]
 }>()
 
-const formRef = ref()
-const formData = ref<ProductFormData>({
-  nombreProducto: '',
-  descripcionProducto: null,
-  precioProducto: 0,
-  stockProducto: 0,
+const { formRef, formData, rules, validate, resetForm } = useProductForm(props.visible, props.product)
+
+watch(() => props.visible, (v) => {
+  if (v) resetForm()
 })
 
-const rules: Record<string, any[]> = {
-  nombreProducto: [
-    { required: true, message: 'El nombre es obligatorio' },
-    { max: 100, message: 'Máximo 100 caracteres' },
-  ],
-  precioProducto: [
-    { required: true, message: 'El precio es obligatorio' },
-    { type: 'number', min: 0.01, message: 'El precio debe ser mayor a 0' },
-  ],
-  stockProducto: [
-    { required: true, message: 'El stock es obligatorio' },
-    { type: 'number', min: 0, message: 'El stock debe ser mayor o igual a 0' },
-  ],
-}
-
-const isEditing = ref(false)
-
-watch(
-  () => props.visible,
-  (visible) => {
-    if (visible) {
-      isEditing.value = !!props.product
-      if (props.product) {
-        formData.value = {
-          nombreProducto: props.product.nombreProducto,
-          descripcionProducto: props.product.descripcionProducto,
-          precioProducto: props.product.precioProducto,
-          stockProducto: props.product.stockProducto,
-        }
-      } else {
-        formData.value = {
-          nombreProducto: '',
-          descripcionProducto: null,
-          precioProducto: 0,
-          stockProducto: 0,
-        }
-      }
-    }
-  },
-)
-
 async function handleOk() {
-  try {
-    await formRef.value.validate()
-    emit('save', formData.value)
-  } catch {
-    // validation failed
-  }
+  const valid = await validate()
+  if (valid) emit('save', formData.value)
 }
 
 function handleCancel() {
@@ -79,56 +34,38 @@ function handleCancel() {
 <template>
   <a-modal
     :open="visible"
-    :title="isEditing ? 'Editar Producto' : 'Nuevo Producto'"
+    :title="product ? 'Editar Producto' : 'Nuevo Producto'"
     :confirm-loading="submitting"
     ok-text="Guardar"
     cancel-text="Cancelar"
     @ok="handleOk"
     @cancel="handleCancel"
     :destroy-on-close="true"
+    wrap-class-name="product-form-modal"
+    :mask-style="{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }"
   >
-    <a-form
-      ref="formRef"
-      :model="formData"
-      :rules="rules"
-      layout="vertical"
-    >
-      <a-form-item label="Nombre" name="nombreProducto">
-        <a-input
-          v-model:value="formData.nombreProducto"
-          placeholder="Nombre del producto"
-          :maxlength="100"
-        />
-      </a-form-item>
-
-      <a-form-item label="Descripción" name="descripcionProducto">
-        <a-textarea
-          v-model:value="formData.descripcionProducto"
-          placeholder="Descripción (opcional)"
-          :rows="3"
-        />
-      </a-form-item>
-
-      <a-form-item label="Precio" name="precioProducto">
-        <a-input-number
-          v-model:value="formData.precioProducto"
-          :min="0.01"
-          :precision="2"
-          :step="0.5"
-          style="width: 100%"
-          placeholder="0.00"
-        />
-      </a-form-item>
-
-      <a-form-item label="Stock" name="stockProducto">
-        <a-input-number
-          v-model:value="formData.stockProducto"
-          :min="0"
-          :precision="0"
-          style="width: 100%"
-          placeholder="0"
-        />
-      </a-form-item>
-    </a-form>
+    <a-spin :spinning="submitting" tip="Guardando...">
+      <a-form
+        ref="formRef"
+        :model="formData"
+        :rules="rules"
+        layout="vertical"
+        validate-trigger="change"
+      >
+        <template v-for="field in productFormFields" :key="String(field.name)">
+          <a-form-item :label="field.label" :name="String(field.name)">
+            <component
+              :is="field.component"
+              v-model:value="formData[field.name]"
+              :placeholder="field.placeholder"
+              v-bind="field.props"
+              style="width: 100%"
+            />
+          </a-form-item>
+        </template>
+      </a-form>
+    </a-spin>
   </a-modal>
 </template>
+
+<style scoped src="./ProductFormModal.css"></style>

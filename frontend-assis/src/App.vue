@@ -27,11 +27,4 @@ function closeSidebar() {
   </div>
 </template>
 
-<style scoped>
-.layout__main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-</style>
+<style scoped src="./App.css"></style>

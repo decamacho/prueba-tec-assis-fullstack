@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useProductStore } from '../../stores/productStore'
+import { useProductTable } from '../../composables/useProductTable'
+import { productColumns } from '../../config/productColumns'
 import type { Product } from '../../../core/domain/entities/Product'
+import { Modal } from 'ant-design-vue'
+import { EditOutlined, HistoryOutlined, DeleteOutlined } from '@ant-design/icons-vue'
 
-const store = useProductStore()
-
-const searchText = ref('')
-const sortBy = ref<string>('fechaCreacion')
-const sortOrder = ref<'ASC' | 'DESC'>('DESC')
+const { store, searchText, handleSearch, handleTableChange, handleStatusToggle } = useProductTable()
 
 const emit = defineEmits<{
   edit: [product: Product]
@@ -15,68 +13,16 @@ const emit = defineEmits<{
   create: []
 }>()
 
-onMounted(() => {
-  store.fetchProducts()
-})
-
-function handleSearch() {
-  store.setSearch(searchText.value)
-}
-
-function handleStatusChange(record: Product, checked: boolean) {
-  store.changeProductStatus(record.id, checked)
-}
-
-function handleTableChange(pagination: any, _filters: any, sorter: any) {
-  if (pagination.current) {
-    store.setPage(pagination.current)
-  }
-  if (sorter.field) {
-    const order = sorter.order === 'ascend' ? 'ASC' : 'DESC'
-    sortBy.value = sorter.field
-    sortOrder.value = order
-    store.setSort(sorter.field, order)
-  }
-}
-
 function confirmDelete(record: Product) {
-  const { Modal } = window as any
-  if (Modal) {
-    Modal.confirm({
-      title: 'Eliminar producto',
-      content: `¿Estás seguro de eliminar "${record.nombreProducto}"?`,
-      okText: 'Eliminar',
-      okType: 'danger',
-      cancelText: 'Cancelar',
-      onOk: () => store.removeProduct(record.id),
-    })
-  }
+  Modal.confirm({
+    title: 'Eliminar producto',
+    content: `¿Estás seguro de eliminar "${record.nombreProducto}"? Esta acción no se puede deshacer.`,
+    okText: 'Eliminar',
+    okType: 'danger',
+    cancelText: 'Cancelar',
+    onOk: () => store.removeProduct(record.id),
+  })
 }
-
-const columns = [
-  { title: 'Nombre', dataIndex: 'nombreProducto', key: 'nombreProducto', sorter: true },
-  {
-    title: 'Precio',
-    dataIndex: 'precioProducto',
-    key: 'precioProducto',
-    sorter: true,
-    customRender: ({ value }: { value: number }) =>
-      `$${Number(value).toFixed(2)}`,
-  },
-  { title: 'Stock', dataIndex: 'stockProducto', key: 'stockProducto', sorter: true },
-  {
-    title: 'Estado',
-    dataIndex: 'estadoProducto',
-    key: 'estadoProducto',
-    customRender: ({ value }: { value: boolean }) =>
-      value ? 'Activo' : 'Inactivo',
-  },
-  {
-    title: 'Acciones',
-    key: 'acciones',
-    width: 280,
-  },
-]
 </script>
 
 <template>
@@ -85,7 +31,7 @@ const columns = [
       <a-input-search
         v-model:value="searchText"
         placeholder="Buscar por nombre..."
-        @search="handleSearch"
+        @input="handleSearch"
         class="product-table__search"
         allow-clear
       />
@@ -94,80 +40,66 @@ const columns = [
       </a-button>
     </div>
 
-    <a-table
-      :dataSource="store.products"
-      :columns="columns"
-      :loading="store.isLoading"
-      :pagination="{
-        current: store.page,
-        pageSize: store.limit,
-        total: store.total,
-        showSizeChanger: false,
-        showTotal: (total: number) => `Total ${total} productos`,
-      }"
-      @change="handleTableChange"
-      rowKey="id"
-    >
-      <template #bodyCell="{ column, record }: { column: any; record: Product }">
-        <template v-if="column.key === 'estadoProducto'">
-          <a-switch
-            :checked="record.estadoProducto"
-            @change="(checked: boolean) => handleStatusChange(record, checked)"
-          />
-        </template>
-        <template v-if="column.key === 'acciones'">
-          <a-space>
-            <a-button size="small" @click="emit('edit', record)">
-              Editar
-            </a-button>
-            <a-button size="small" @click="emit('showHistory', record)">
-              Historial
-            </a-button>
-            <a-popconfirm
-              title="¿Eliminar este producto?"
-              ok-text="Eliminar"
-              cancel-text="Cancelar"
-              @confirm="store.removeProduct(record.id)"
+    <div class="product-table__wrapper">
+      <a-table
+        :data-source="store.filteredProducts as any"
+        :columns="productColumns"
+        :loading="store.isLoading"
+        :pagination="{
+          current: store.page,
+          pageSize: store.limit,
+          total: store.filteredProducts.length,
+          showSizeChanger: false,
+          showTotal: (total: number) => `Total ${total} productos`,
+        }"
+        @change="handleTableChange"
+        row-key="id"
+        :scroll="{ x: 700 }"
+      >
+        <template #bodyCell="{ column, record }: { column: any; record: Product }">
+          <template v-if="column.key === 'estadoProducto'">
+            <a-tooltip
+              :title="record.estadoProducto ? 'Desactivar producto' : 'Activar producto'"
             >
-              <a-button size="small" danger>
-                Eliminar
-              </a-button>
-            </a-popconfirm>
-          </a-space>
+              <a-switch
+                :checked="record.estadoProducto"
+                :loading="store.isSwitching(record.id)"
+                @change="(checked: boolean) => handleStatusToggle(record.id, checked)"
+              />
+            </a-tooltip>
+            <span :class="['product-table__status', record.estadoProducto ? 'product-table__status--active' : 'product-table__status--inactive']">
+              {{ record.estadoProducto ? 'Activo' : 'Inactivo' }}
+            </span>
+          </template>
+          <template v-if="column.key === 'precioProducto'">
+            ${{ Number(record.precioProducto).toFixed(2) }}
+          </template>
+          <template v-if="column.key === 'acciones'">
+            <a-space>
+              <a-tooltip title="Editar producto">
+                <a-button type="primary" shape="round" size="small" @click="emit('edit', record)">
+                  <template #icon><EditOutlined /></template>
+                  Editar
+                </a-button>
+              </a-tooltip>
+              <a-tooltip title="Ver historial">
+                <a-button shape="round" size="small" class="btn-history" @click="emit('showHistory', record)">
+                  <template #icon><HistoryOutlined /></template>
+                  Historial
+                </a-button>
+              </a-tooltip>
+              <a-tooltip title="Eliminar producto">
+                <a-button danger shape="round" size="small" @click="confirmDelete(record)">
+                  <template #icon><DeleteOutlined /></template>
+                  Eliminar
+                </a-button>
+              </a-tooltip>
+            </a-space>
+          </template>
         </template>
-      </template>
-    </a-table>
+      </a-table>
+    </div>
   </div>
 </template>
 
-<style scoped>
-.product-table {
-  background: #fff;
-  padding: 16px;
-  border-radius: 8px;
-}
-
-.product-table__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.product-table__search {
-  max-width: 320px;
-}
-
-@media (max-width: 767px) {
-  .product-table__header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .product-table__search {
-    max-width: 100%;
-  }
-}
-</style>
+<style scoped src="./ProductTable.css"></style>

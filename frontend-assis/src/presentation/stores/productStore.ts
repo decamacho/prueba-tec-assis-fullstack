@@ -20,11 +20,21 @@ export const useProductStore = defineStore('product', () => {
   const currentProduct = ref<Product | null>(null)
   const history = ref<ProductHistory[]>([])
   const isHistoryLoading = ref(false)
+  const switchingIds = ref<Set<string>>(new Set())
+  const searchQuery = ref('')
 
   const queryParams = computed<ProductQueryParams>(() => ({
     page: page.value,
     limit: limit.value,
   }))
+
+  const filteredProducts = computed(() => {
+    if (!searchQuery.value) return products.value
+    const q = searchQuery.value.toLowerCase()
+    return products.value.filter((p) =>
+      p.nombreProducto.toLowerCase().includes(q),
+    )
+  })
 
   async function fetchProducts(params?: ProductQueryParams) {
     isLoading.value = true
@@ -82,7 +92,6 @@ export const useProductStore = defineStore('product', () => {
   }
 
   async function removeProduct(id: string) {
-    isSubmitting.value = true
     try {
       await useCases.remove(id)
       message.success('Producto eliminado exitosamente')
@@ -90,12 +99,11 @@ export const useProductStore = defineStore('product', () => {
       return true
     } catch {
       return false
-    } finally {
-      isSubmitting.value = false
     }
   }
 
   async function changeProductStatus(id: string, estadoProducto: boolean) {
+    switchingIds.value = new Set(switchingIds.value).add(id)
     try {
       await useCases.changeStatus(id, estadoProducto)
       message.success('Estado actualizado exitosamente')
@@ -103,6 +111,10 @@ export const useProductStore = defineStore('product', () => {
       return true
     } catch {
       return false
+    } finally {
+      const next = new Set(switchingIds.value)
+      next.delete(id)
+      switchingIds.value = next
     }
   }
 
@@ -118,8 +130,7 @@ export const useProductStore = defineStore('product', () => {
   }
 
   function setSearch(search: string) {
-    page.value = 1
-    return fetchProducts({ page: 1, limit: limit.value, search })
+    searchQuery.value = search
   }
 
   function setPage(p: number) {
@@ -131,8 +142,13 @@ export const useProductStore = defineStore('product', () => {
     return fetchProducts({ page: page.value, limit: limit.value, sortBy, sortOrder })
   }
 
+  function isSwitching(id: string): boolean {
+    return switchingIds.value.has(id)
+  }
+
   return {
     products,
+    filteredProducts,
     total,
     page,
     limit,
@@ -142,6 +158,7 @@ export const useProductStore = defineStore('product', () => {
     currentProduct,
     history,
     isHistoryLoading,
+    searchQuery,
     fetchProducts,
     fetchProductById,
     createProduct,
@@ -152,5 +169,6 @@ export const useProductStore = defineStore('product', () => {
     setSearch,
     setPage,
     setSort,
+    isSwitching,
   }
 })

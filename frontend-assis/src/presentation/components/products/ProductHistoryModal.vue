@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { watch } from 'vue'
 import { useProductStore } from '../../stores/productStore'
-import { ClockCircleOutlined } from '@ant-design/icons-vue'
 
 const props = defineProps<{
   visible: boolean
@@ -15,20 +14,18 @@ const store = useProductStore()
 watch(
   () => props.visible,
   (visible) => {
-    if (visible && props.productId) {
-      store.fetchHistory(props.productId)
-    }
+    if (visible && props.productId) store.fetchHistory(props.productId)
   },
 )
 
-function actionColor(action: string) {
-  switch (action) {
-    case 'CREATE': return 'green'
-    case 'UPDATE': return 'blue'
-    case 'DELETE': return 'red'
-    case 'STATUS_CHANGE': return 'orange'
-    default: return 'gray'
+function actionColor(action: string): string {
+  const colors: Record<string, string> = {
+    CREATE: 'green',
+    UPDATE: 'blue',
+    DELETE: 'red',
+    STATUS_CHANGE: 'orange',
   }
+  return colors[action] || 'gray'
 }
 </script>
 
@@ -46,21 +43,16 @@ function actionColor(action: string) {
         :key="item.id"
         :color="actionColor(item.action)"
       >
-        <template #dot>
-          <ClockCircleOutlined />
-        </template>
-        <template #default>
-          <strong>{{ item.action }}</strong>
-          <p>{{ item.description }}</p>
-          <small>{{ new Date(item.createdAt).toLocaleString('es-CO') }}</small>
-        </template>
+        <strong>{{ item.action }}</strong>
+        <p>{{ item.description }}</p>
+        <small>{{ new Date(item.createdAt).toLocaleString('es-CO') }}</small>
       </a-timeline-item>
     </a-timeline>
-
-    <a-empty v-else-if="!store.isHistoryLoading && store.history.length === 0" description="Sin historial" />
-
-    <div v-if="store.isHistoryLoading" style="text-align: center; padding: 24px">
+    <a-empty v-else-if="!store.isHistoryLoading" description="Sin historial" />
+    <div v-if="store.isHistoryLoading" class="history-modal__loading">
       <a-spin />
     </div>
   </a-modal>
 </template>
+
+<style scoped src="./ProductHistoryModal.css"></style>

@@ -7,46 +7,40 @@ import ProductHistoryModal from '../components/products/ProductHistoryModal.vue'
 import type { Product, ProductFormData } from '../../core/domain/entities/Product'
 
 const store = useProductStore()
-
-const showFormModal = ref(false)
+const showForm = ref(false)
 const selectedProduct = ref<Product | null>(null)
-const showHistoryModal = ref(false)
+const showHistory = ref(false)
 const historyProductId = ref<string | null>(null)
 
 function openCreate() {
   selectedProduct.value = null
-  showFormModal.value = true
+  showForm.value = true
 }
 
 function openEdit(product: Product) {
   selectedProduct.value = product
-  showFormModal.value = true
+  showForm.value = true
 }
 
 function closeForm() {
-  showFormModal.value = false
+  showForm.value = false
   selectedProduct.value = null
 }
 
 async function handleSave(data: ProductFormData) {
-  let success: boolean
-  if (selectedProduct.value) {
-    success = await store.updateProduct(selectedProduct.value.id, data)
-  } else {
-    success = await store.createProduct(data)
-  }
-  if (success) {
-    closeForm()
-  }
+  const success = selectedProduct.value
+    ? await store.updateProduct(selectedProduct.value.id, data)
+    : await store.createProduct(data)
+  if (success) closeForm()
 }
 
 function openHistory(product: Product) {
   historyProductId.value = product.id
-  showHistoryModal.value = true
+  showHistory.value = true
 }
 
 function closeHistory() {
-  showHistoryModal.value = false
+  showHistory.value = false
   historyProductId.value = null
 }
 </script>
@@ -54,22 +48,20 @@ function closeHistory() {
 <template>
   <div>
     <h1 class="layout__content-title">Productos</h1>
-    <ProductTable
-      @edit="openEdit"
-      @create="openCreate"
-      @show-history="openHistory"
-    />
+    <ProductTable @edit="openEdit" @show-history="openHistory" @create="openCreate" />
     <ProductFormModal
-      :visible="showFormModal"
+      :visible="showForm"
       :product="selectedProduct"
       :submitting="store.isSubmitting"
       @close="closeForm"
       @save="handleSave"
     />
     <ProductHistoryModal
-      :visible="showHistoryModal"
+      :visible="showHistory"
       :product-id="historyProductId"
       @close="closeHistory"
     />
   </div>
 </template>
+
+<style scoped src="./ProductsView.css"></style>
